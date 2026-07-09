@@ -1,0 +1,18 @@
+{
+  "name": "wavepoint-studios-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for Wavepoint Studios with verification, moderation, and lockdown systems.",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "deploy": "node src/deploy-commands.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
