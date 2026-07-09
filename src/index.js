@@ -20,6 +20,28 @@ const client = new Client({
 
 let state = await loadState();
 
+// Channel where the verification panel is auto-posted on startup.
+const VERIFY_PANEL_CHANNEL_ID =
+  process.env.VERIFY_PANEL_CHANNEL_ID || "1524821402333478963";
+
+// Roles allowed to use the moderation commands (kick/ban/timeout).
+const MOD_ROLE_IDS = (process.env.MOD_ROLE_IDS ||
+  "1524826736368553985,1524819635285921942,1524819560715518064")
+  .split(",")
+  .map((id) => id.trim())
+  .filter(Boolean);
+
+const MODERATION_COMMANDS = new Set(["kick", "ban", "timeout"]);
+
+function hasModRole(interaction) {
+  if (interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+    return true;
+  }
+  return interaction.member.roles.cache.some((role) =>
+    MOD_ROLE_IDS.includes(role.id)
+  );
+}
+
 async function reply(interaction, content) {
   if (interaction.deferred || interaction.replied) {
     await interaction.editReply(content);
@@ -303,6 +325,63 @@ const chatHandlers = {
   unlock: handleUnlock
 };
 
+// Reuse an existing panel in the channel (survives redeploys / ephemeral disks).
+async function findExistingPanel(channel, botId) {
+  const messages = await channel.messages.fetch({ limit: 50 }).catch(() => null);
+  if (!messages) {
+    return null;
+  }
+  return (
+    messages.find(
+      (message) =>
+        message.author.id === botId &&
+        message.components?.some((row) =>
+          row.components.some((component) =>
+            component.customId?.startsWith("verify:")
+          )
+        )
+    ) || null
+  );
+}
+
+async function ensureVerificationPanel(readyClient) {
+  if (!VERIFY_PANEL_CHANNEL_ID) {
+    return;
+  }
+
+  const roleId = process.env.VERIFIED_ROLE_ID;
+  if (!roleId) {
+    console.warn(
+      "VERIFIED_ROLE_ID not set; skipping the auto verification panel."
+    );
+    return;
+  }
+
+  const channel = await readyClient.channels
+    .fetch(VERIFY_PANEL_CHANNEL_ID)
+    .catch(() => null);
+  if (!channel?.isTextBased()) {
+    console.warn(
+      `Verification panel channel ${VERIFY_PANEL_CHANNEL_ID} not found or not text-based.`
+    );
+    return;
+  }
+
+  const panel = buildVerificationPanel({ roleId });
+  const existing = await findExistingPanel(channel, readyClient.user.id);
+
+  if (existing) {
+    await existing.edit(panel).catch((error) =>
+      console.error("Failed to refresh verification panel:", error)
+    );
+    console.log("Refreshed the verification panel.");
+    return;
+  }
+
+  await channel.send(panel);
+  console.log(`Posted the verification panel in #${channel.name}.`);
+}
+
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);
 
@@ -315,6 +394,12 @@ client.once(Events.ClientReady, async (readyClient) => {
     console.log(`Registered ${count} ${scope} slash commands.`);
   } catch (error) {
     console.error("Failed to register slash commands:", error);
+  }
+
+  try {
+    await ensureVerificationPanel(readyClient);
+  } catch (error) {
+    console.error("Failed to post the verification panel:", error);
   }
 });
 
@@ -342,6 +427,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     await interaction.deferReply({ ephemeral: true });
+
+    if (MODERATION_COMMANDS.has(interaction.commandName) && !hasModRole(interaction)) {
+      await reply(
+        interaction,
+        "You don't have permission to use moderation commands."
+      );
+      return;
+    }
+
     await handler(interaction);
   } catch (error) {
     console.error(error);

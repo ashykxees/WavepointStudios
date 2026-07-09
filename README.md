@@ -11,7 +11,12 @@ A Discord bot for the Wavepoint Studios server with three systems:
 
 ### Verification
 
-- `/verify_panel` – posts the verification panel in the current channel.
+The verification panel is **posted automatically on startup** into the channel set
+by `VERIFY_PANEL_CHANNEL_ID` (defaults to the Wavepoint verification channel). On
+each restart the bot reuses the existing panel instead of posting duplicates, so
+you don't need to run a command. `VERIFIED_ROLE_ID` must be set for the auto panel.
+
+- `/verify_panel` – (optional) manually posts a panel in the current channel.
   - `role` (optional) – the role granted on click. Defaults to `VERIFIED_ROLE_ID`.
   - `title`, `description`, `button_label` (optional) – customise the panel text.
 
@@ -20,14 +25,16 @@ A Discord bot for the Wavepoint Studios server with three systems:
 
 ### Moderation
 
-- `/kick` – `member`, optional `reason`. Requires **Kick Members**.
+- `/kick` – `member`, optional `reason`.
 - `/ban` – `member`, optional `reason`, optional `delete_message_days` (0–7).
-  Works even if the user already left the server. Requires **Ban Members**.
+  Works even if the user already left the server.
 - `/timeout` – `member`, `minutes` (0 removes an active timeout, max 40320 = 28
-  days), optional `reason`. Requires **Moderate Members**.
+  days), optional `reason`.
 
-Every moderation command checks role hierarchy: you can't action yourself, the
-owner, or anyone whose top role is above/equal to yours or the bot's.
+Access is restricted to the role IDs in `MOD_ROLE_IDS` (administrators are always
+allowed); anyone else gets an ephemeral "no permission" reply. Every command also
+checks role hierarchy: you can't action yourself, the owner, or anyone whose top
+role is above/equal to yours or the bot's.
 
 ### Lockdown
 
