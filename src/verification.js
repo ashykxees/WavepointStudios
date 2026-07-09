@@ -15,6 +15,9 @@ const DEFAULT_DESCRIPTION =
 const DEFAULT_BUTTON_LABEL = "Verify";
 const GREEN = 0x2ecc71;
 
+// Branding footer applied to every embed the bot sends.
+export const EMBED_FOOTER = "Made from Ashy Enterprises .gg/PNp9DsfF4e";
+
 export function buildVerifyCustomId(roleId) {
   return `${VERIFY_BUTTON_PREFIX}:${roleId}`;
 }
@@ -39,7 +42,8 @@ export function buildVerificationPanel({
     .setTitle(title || process.env.VERIFY_TITLE || DEFAULT_TITLE)
     .setDescription(
       description || process.env.VERIFY_DESCRIPTION || DEFAULT_DESCRIPTION
-    );
+    )
+    .setFooter({ text: EMBED_FOOTER });
 
   const image = imageUrl || process.env.VERIFY_IMAGE_URL;
   if (image) {
