@@ -48,10 +48,11 @@ export const commands = [
     ),
 
   // ----- Moderation -----
+  // Moderation command access is gated by MOD_ROLE_IDS in index.js, so these are
+  // left visible to everyone rather than hidden behind a Discord permission.
   new SlashCommandBuilder()
     .setName("kick")
     .setDescription("Kick a member from the server.")
-    .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
     .setDMPermission(false)
     .addUserOption((option) =>
       option
@@ -69,7 +70,6 @@ export const commands = [
   new SlashCommandBuilder()
     .setName("ban")
     .setDescription("Ban a member from the server.")
-    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .setDMPermission(false)
     .addUserOption((option) =>
       option
@@ -95,7 +95,6 @@ export const commands = [
   new SlashCommandBuilder()
     .setName("timeout")
     .setDescription("Time a member out (mute) for a number of minutes.")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .setDMPermission(false)
     .addUserOption((option) =>
       option
