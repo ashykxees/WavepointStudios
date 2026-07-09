@@ -382,8 +382,18 @@ async function ensureVerificationPanel(readyClient) {
   console.log(`Posted the verification panel in #${channel.name}.`);
 }
 
+const BOT_BIO =
+  "Official Moderation Bot of WavePoint Studios.\nCrafted by Ashy Enterprises .gg/PNp9DsfF4e";
+
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);
+
+  try {
+    await readyClient.application.edit({ description: BOT_BIO });
+    console.log("Updated the bot bio.");
+  } catch (error) {
+    console.error("Failed to update the bot bio:", error);
+  }
 
   try {
     const { scope, count } = await registerCommands({
