@@ -1,0 +1,8 @@
+node_modules/
+data/
+
+# Never commit secrets
+.env
+.env.*
+!.env.example
+settings.env

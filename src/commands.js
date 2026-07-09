@@ -1,0 +1,147 @@
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+
+// How many "leave this channel unlocked" options the /lockdown command exposes.
+export const MAX_UNLOCKED_CHANNELS = 5;
+
+function addUnlockedChannelOptions(command) {
+  for (let index = 1; index <= MAX_UNLOCKED_CHANNELS; index += 1) {
+    command.addChannelOption((option) =>
+      option
+        .setName(`unlocked_channel_${index}`)
+        .setDescription("A channel that should stay open during the lockdown.")
+        .setRequired(false)
+    );
+  }
+  return command;
+}
+
+export const commands = [
+  // ----- Verification -----
+  new SlashCommandBuilder()
+    .setName("verify_panel")
+    .setDescription("Post the verification panel with a button members click to get a role.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .setDMPermission(false)
+    .addRoleOption((option) =>
+      option
+        .setName("role")
+        .setDescription("Role granted when a member clicks the verify button.")
+        .setRequired(false)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("title")
+        .setDescription("Title shown on the panel.")
+        .setRequired(false)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("description")
+        .setDescription("Body text shown on the panel.")
+        .setRequired(false)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("button_label")
+        .setDescription("Text shown on the verify button.")
+        .setRequired(false)
+    ),
+
+  // ----- Moderation -----
+  new SlashCommandBuilder()
+    .setName("kick")
+    .setDescription("Kick a member from the server.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
+    .setDMPermission(false)
+    .addUserOption((option) =>
+      option
+        .setName("member")
+        .setDescription("The member to kick.")
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("reason")
+        .setDescription("Reason for the kick (shown in the audit log).")
+        .setRequired(false)
+    ),
+
+  new SlashCommandBuilder()
+    .setName("ban")
+    .setDescription("Ban a member from the server.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
+    .setDMPermission(false)
+    .addUserOption((option) =>
+      option
+        .setName("member")
+        .setDescription("The member to ban.")
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("reason")
+        .setDescription("Reason for the ban (shown in the audit log).")
+        .setRequired(false)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("delete_message_days")
+        .setDescription("Days of the member's recent messages to delete (0-7).")
+        .setMinValue(0)
+        .setMaxValue(7)
+        .setRequired(false)
+    ),
+
+  new SlashCommandBuilder()
+    .setName("timeout")
+    .setDescription("Time a member out (mute) for a number of minutes.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
+    .setDMPermission(false)
+    .addUserOption((option) =>
+      option
+        .setName("member")
+        .setDescription("The member to time out.")
+        .setRequired(true)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("minutes")
+        .setDescription("How long the timeout lasts, in minutes (0 removes an active timeout).")
+        .setMinValue(0)
+        .setMaxValue(40320) // Discord max is 28 days.
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("reason")
+        .setDescription("Reason for the timeout (shown in the audit log).")
+        .setRequired(false)
+    ),
+
+  // ----- Lockdown -----
+  addUnlockedChannelOptions(
+    new SlashCommandBuilder()
+      .setName("lockdown")
+      .setDescription("Lock every text channel so only staff can talk.")
+      .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+      .setDMPermission(false)
+      .addStringOption((option) =>
+        option
+          .setName("reason")
+          .setDescription("Reason announced in each locked channel.")
+          .setRequired(false)
+      )
+  ),
+
+  new SlashCommandBuilder()
+    .setName("unlock")
+    .setDescription("Reopen the channels that were locked by /lockdown.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+    .setDMPermission(false)
+    .addStringOption((option) =>
+      option
+        .setName("reason")
+        .setDescription("Reason announced in each reopened channel.")
+        .setRequired(false)
+    )
+].map((command) => command.toJSON());
