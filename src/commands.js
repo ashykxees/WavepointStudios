@@ -16,36 +16,8 @@ function addUnlockedChannelOptions(command) {
 }
 
 export const commands = [
-  // ----- Verification -----
-  new SlashCommandBuilder()
-    .setName("verify_panel")
-    .setDescription("Post the verification panel with a button members click to get a role.")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-    .setDMPermission(false)
-    .addRoleOption((option) =>
-      option
-        .setName("role")
-        .setDescription("Role granted when a member clicks the verify button.")
-        .setRequired(false)
-    )
-    .addStringOption((option) =>
-      option
-        .setName("title")
-        .setDescription("Title shown on the panel.")
-        .setRequired(false)
-    )
-    .addStringOption((option) =>
-      option
-        .setName("description")
-        .setDescription("Body text shown on the panel.")
-        .setRequired(false)
-    )
-    .addStringOption((option) =>
-      option
-        .setName("button_label")
-        .setDescription("Text shown on the verify button.")
-        .setRequired(false)
-    ),
+  // Verification is handled entirely by the auto-posted panel (see index.js);
+  // there is no verification slash command.
 
   // ----- Moderation -----
   // Moderation command access is gated by MOD_ROLE_IDS in index.js, so these are

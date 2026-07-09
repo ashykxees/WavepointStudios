@@ -52,40 +52,6 @@ async function reply(interaction, content) {
 
 // ----- Verification -----
 
-async function handleVerifyPanel(interaction) {
-  const role =
-    interaction.options.getRole("role") ||
-    (process.env.VERIFIED_ROLE_ID
-      ? await interaction.guild.roles.fetch(process.env.VERIFIED_ROLE_ID)
-      : null);
-
-  if (!role) {
-    await reply(
-      interaction,
-      "No role set. Pass the `role` option or set `VERIFIED_ROLE_ID` in the bot's config."
-    );
-    return;
-  }
-
-  if (role.comparePositionTo(interaction.guild.members.me.roles.highest) >= 0) {
-    await reply(
-      interaction,
-      `I can't assign **${role.name}** because it's above or equal to my highest role. Move my role higher and try again.`
-    );
-    return;
-  }
-
-  const panel = buildVerificationPanel({
-    roleId: role.id,
-    title: interaction.options.getString("title") || undefined,
-    description: interaction.options.getString("description") || undefined,
-    buttonLabel: interaction.options.getString("button_label") || undefined
-  });
-
-  await interaction.channel.send(panel);
-  await reply(interaction, `Verification panel posted. Members who click it get ${role}.`);
-}
-
 async function handleVerifyButton(interaction) {
   const roleId = parseVerifyCustomId(interaction.customId);
   if (!roleId) {
@@ -317,7 +283,6 @@ async function handleUnlock(interaction) {
 // ----- Wiring -----
 
 const chatHandlers = {
-  verify_panel: handleVerifyPanel,
   kick: handleKick,
   ban: handleBan,
   timeout: handleTimeout,
@@ -368,14 +333,13 @@ async function ensureVerificationPanel(readyClient) {
   }
 
   const panel = buildVerificationPanel({ roleId });
-  const existing = await findExistingPanel(channel, readyClient.user.id);
 
+  // Resend: remove the previous panel (if any) and post a fresh one on startup.
+  const existing = await findExistingPanel(channel, readyClient.user.id);
   if (existing) {
-    await existing.edit(panel).catch((error) =>
-      console.error("Failed to refresh verification panel:", error)
+    await existing.delete().catch((error) =>
+      console.error("Failed to remove the old verification panel:", error)
     );
-    console.log("Refreshed the verification panel.");
-    return;
   }
 
   await channel.send(panel);

@@ -12,16 +12,12 @@ A Discord bot for the Wavepoint Studios server with three systems:
 ### Verification
 
 The verification panel is **posted automatically on startup** into the channel set
-by `VERIFY_PANEL_CHANNEL_ID` (defaults to the Wavepoint verification channel). On
-each restart the bot reuses the existing panel instead of posting duplicates, so
-you don't need to run a command. `VERIFIED_ROLE_ID` must be set for the auto panel.
+by `VERIFY_PANEL_CHANNEL_ID` (defaults to the Wavepoint verification channel).
+There is no slash command — on each startup the bot removes its previous panel in
+that channel and resends a fresh one. `VERIFIED_ROLE_ID` must be set.
 
-- `/verify_panel` – (optional) manually posts a panel in the current channel.
-  - `role` (optional) – the role granted on click. Defaults to `VERIFIED_ROLE_ID`.
-  - `title`, `description`, `button_label` (optional) – customise the panel text.
-
-  Members click the button to receive the role. The bot answers with an ephemeral
-  message and skips anyone who already has the role. Requires **Manage Server**.
+Members click the button to receive the role. The bot answers with an ephemeral
+message and skips anyone who already has the role.
 
 ### Moderation
 
