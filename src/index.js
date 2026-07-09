@@ -24,6 +24,10 @@ let state = await loadState();
 const VERIFY_PANEL_CHANNEL_ID =
   process.env.VERIFY_PANEL_CHANNEL_ID || "1524821402333478963";
 
+// Role removed from a member when they verify (e.g. an "unverified" role).
+const REMOVE_ROLE_ON_VERIFY_ID =
+  process.env.REMOVE_ROLE_ON_VERIFY_ID || "1524821272758976582";
+
 // Roles allowed to use the moderation commands (kick/ban/timeout).
 const MOD_ROLE_IDS = (process.env.MOD_ROLE_IDS ||
   "1524826736368553985,1524819635285921942,1524819560715518064")
@@ -66,17 +70,31 @@ async function handleVerifyButton(interaction) {
     return;
   }
 
-  if (interaction.member.roles.cache.has(role.id)) {
-    await reply(interaction, `You already have the ${role} role.`);
-    return;
+  const botHighest = interaction.guild.members.me.roles.highest;
+  const member = interaction.member;
+
+  // Add the verify role (skip if they already have it).
+  if (!member.roles.cache.has(role.id)) {
+    if (role.comparePositionTo(botHighest) >= 0) {
+      await reply(
+        interaction,
+        "I can't assign that role right now. Please contact a staff member."
+      );
+      return;
+    }
+    await member.roles.add(role, "Verified via verification panel.");
   }
 
-  if (role.comparePositionTo(interaction.guild.members.me.roles.highest) >= 0) {
-    await reply(interaction, "I can't assign that role right now. Please contact a staff member.");
-    return;
+  // Remove the "unverified" role if the member has it.
+  if (member.roles.cache.has(REMOVE_ROLE_ON_VERIFY_ID)) {
+    const removeRole = await interaction.guild.roles
+      .fetch(REMOVE_ROLE_ON_VERIFY_ID)
+      .catch(() => null);
+    if (removeRole && removeRole.comparePositionTo(botHighest) < 0) {
+      await member.roles.remove(removeRole, "Verified via verification panel.");
+    }
   }
 
-  await interaction.member.roles.add(role, "Verified via verification panel.");
   await reply(interaction, `You're verified! You now have the ${role} role.`);
 }
 
